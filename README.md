@@ -28,18 +28,18 @@ while providing a flexible and efficient way to query data.
 ## Agenda
 
 - [Why GraphQL](#why-graphql)
-- [Getting Started](#getting-started) - 15min
+- [Getting Started](#getting-started)
 - [Schema First Approach](#schema-first-development)
-- [Schema Mapping Inspection Report](#schema-mapping-inspection-report) 6 min
-- [Data Fetchers](#data-fetchers) 15 min
-- [Union (Search)](#unions) 5 min
+- [Schema Mapping Inspection Report](#schema-mapping-inspection-report)
+- [Data Fetchers](#data-fetchers)
+- [Union (Search)](#unions)
 - [Performance Improvements](#performance-improvements)
 - [Observability](#observability)
-- [Data Integration](#data-integration) //prob all i will get to
+- [Data Integration](#data-integration)
 - [Client App](#client-app)
 - [Federation](#federation)
 - [Resources](#resources)
-- [Conclusion]()
+- [Conclusion](#conclusion)
 
 ## Why GraphQL
 
@@ -361,15 +361,13 @@ The Netflix Domain Graph Service (DGS) Framework is a GraphQL server framework f
 In March 2024, the DGS Framework introduced an integration with Spring for GraphQL, aiming to unify the GraphQL Java community
 and leverage the strengths of both frameworks.
 
-// TODO: have a better story to tell here
-
-- Talk about DGS here
-  - https://docs.spring.io/spring-graphql/reference/codegen.html
-  - https://www.youtube.com/watch?v=_l4Dykjezjk&t=1230s
-
-https://www.youtube.com/watch?v=_l4Dykjezjk&t=1230s
+https://docs.spring.io/spring-graphql/reference/codegen.html
 
 ## Federation
+
+GraphQL Federation is an architectural pattern and specification that allows you to combine multiple GraphQL services into 
+a single unified API. It's particularly useful for large organizations with multiple teams working on different 
+parts of the API.
 
 https://github.com/apollographql/federation-jvm-spring-example
 
@@ -378,6 +376,7 @@ https://github.com/apollographql/federation-jvm-spring-example
 [Spring for GraphQL - Reference Documentation](https://docs.spring.io/spring-graphql/reference)
 [Spring for GraphQL - GitHub](https://github.com/spring-projects/spring-graphql)
 [Spring for GraphQL - GitHub Examples](https://github.com/spring-projects/spring-graphql-examples)
+[GraphQL Playlist on YouTube](https://www.youtube.com/playlist?list=PLZV0a2jwt22slmUC9iwGGWfRQRIhs1ELa)
 
 ## Conclusion
 
@@ -385,51 +384,13 @@ This project demonstrates how GraphQL can provide a more efficient and flexible 
 Through features like precise data selection, batch loading, and strong typing, we've shown how to build a scalable and 
 maintainable API that better serves both frontend and backend developers.
 
+
 ## Notes
 
-- Where does a graphql api get its data from? We don't really ask that question about a REST API do we? 
-  - graphql lends itself to multiple datasource (db/file system/microservice)
-- when it comes to relationships we should not assume that we will always need all the data. You might want the books author, you might not
-- we need to talk about the transport layer (http/web socket/rsocket)
-- make sure docker is running
-- GraphQL Schema Specification
-  There are guidelines to REST ... but what about when we get past CRUD
-
-```graphql
-{
-  reviews(filter: { reviewerName: "Sarah" }) {
-    book {
-      title
-    }
-    reviewerName
-    rating
-    comment
-  }
-}
-
-# {
-#   reviews(filter: { verified: true }) {
-#     reviewerName
-#     rating
-#     comment
-#   }
-# }
-
-# {
-#   reviews(filter: { rating: 5 }) {
-#     reviewerName
-#     comment
-#     book {
-#       title
-#     }
-#   }
-# }
-
-# {
-#   reviews {
-#     rating
-#     reviewerName
-#     comment
-#   }
-# }
-```
+- Agenda Timing
+  - Why GrapQL & Getting Started - 15 min
+  - Schema First Approach & Schema Inspection - 21 min
+  - Data Fetchers - 35 min
+  - Unions - 40 min
+  - Performance & Observability - 55 min
+  - Data Integration - 60min

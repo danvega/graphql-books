@@ -10,6 +10,7 @@ import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,22 +33,33 @@ public class AuthorController {
         return authorRepository.findAll();
     }
 
-//    @SchemaMapping
-//    public List<Book> books(Author author) throws InterruptedException {
-//        // this could be a call to some microservice would retrieve books by authorId
-//        log.info("Retrieving books for author " + author.getName());
-//        Thread.sleep((1000));
-//        return new ArrayList<>();
-//    }
-
+    @SchemaMapping
+    public List<Book> booksWithDelay(Author author) throws InterruptedException {
+        // this could be a call to some microservice would retrieve books by authorId
+        log.info("Retrieving books for author " + author.getName());
+        Thread.sleep((1000));
+        return new ArrayList<>();
+    }
 
     @BatchMapping
     public List<List<Book>> books(List<Author> authors) {
         log.info("Batch loading books for {} authors", authors.size());
 
-        // Map back to the original author order
+        // Get all author IDs
+        List<Long> authorIds = authors.stream()
+                .map(Author::getId)
+                .toList();
+
+        // Make a single query to get all books for all authors
+        List<Book> allBooks = bookRepository.findByAuthorIdIn(authorIds);
+
+        // Group books by author ID
+        Map<Long, List<Book>> booksByAuthorId = allBooks.stream()
+                .collect(Collectors.groupingBy(book -> book.getAuthor().getId()));
+
+        // Map back to original author order
         return authors.stream()
-                .map(author -> bookRepository.findByAuthor(author))
+                .map(author -> booksByAuthorId.getOrDefault(author.getId(), Collections.emptyList()))
                 .toList();
     }
 
