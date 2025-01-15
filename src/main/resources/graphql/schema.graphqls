@@ -1,0 +1,56 @@
+
+type Query {
+    books: [Book!]!
+    book(id: Int!): Book!
+    authors: [Author!]!
+    search(text: String) : [SearchItem!]!
+    review(id: Int!): Review
+    reviews(filter: ReviewFilter): [Review]!
+}
+
+type Mutation {
+    addBook(bookInput: BookInput): Book!
+}
+
+type Book {
+    id: Int!
+    title: String!
+    author: Author!
+}
+
+type Author {
+    id: ID!
+    name: String!
+    books: [Book!]!
+}
+
+
+# these are all output types
+# what about input types
+input BookInput {
+    title: String!
+    authorId: Int!
+}
+
+# Union BookOrAuthor - This is a type we don't have in Java (they don't share anything in common)
+union SearchItem = Author | Book
+
+type Review {
+    id: ID!
+    rating: Int!
+    comment: String
+    createdAt: String!
+    reviewerName: String!
+    verified: Boolean!
+    book: Book!
+}
+
+input ReviewFilter {
+    rating: Int
+    verified: Boolean
+    reviewerName: String
+}
+
+extend type Book {
+    reviews: [Review!]!
+}

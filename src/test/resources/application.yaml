@@ -1,0 +1,10 @@
+# we need a connection to a database here
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:latest:///books
+
+  jpa:
+    show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create-drop

@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: graphql-books
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  graphql:
+    graphiql:
+      enabled: true
+#  threads:
+#    virtual:
+#      enabled: true
+
+
