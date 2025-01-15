@@ -28,15 +28,15 @@ while providing a flexible and efficient way to query data.
 ## Agenda
 
 - [Why GraphQL](#why-graphql)
-- [Getting Started](#getting-started)
+- [Getting Started](#getting-started) - 15min
 - [Schema First Approach](#schema-first-development)
-- [Schema Mapping Inspection Report](#schema-mapping-inspection-report)
-- [Data Fetchers](#data-fetchers)
+- [Schema Mapping Inspection Report](#schema-mapping-inspection-report) 6 min
+- [Data Fetchers](#data-fetchers) 15 min
+- [Union (Search)](#unions) 5 min
 - [Performance Improvements](#performance-improvements)
-- [Union (Search)](#unions)
-- [Client App](#client-app)
 - [Observability](#observability)
-- [Data Integration](#data-integration)
+- [Data Integration](#data-integration) //prob all i will get to
+- [Client App](#client-app)
 - [Federation](#federation)
 - [Resources](#resources)
 - [Conclusion]()
@@ -199,18 +199,6 @@ mutation {
 }
 ```
 
-## Performance Improvements
-
-* Performance considerations
-* Solving the N+1 query problem
-  * Database optimization techniques
-  * Making too many controller invocations (n+1)
-* Implementing @BatchMapping for efficient data loading
-* All of this is happening sequentially on the same tomcat thread (sequentially)
-  * Leveraging Project Loom for scalability
-  * Configuring virtual thread executors
-  * This will enable a VirtualThreadExecutor
-
 ## Unions
 
 * Implementation of the SearchItem union type
@@ -246,26 +234,18 @@ public class SearchController {
 }
 ```
 
-## Client App
+## Performance Improvements
 
-* GraphQL Client Implementation
-* Type-safe query generation
-* Error handling and response parsing
-* Integration with Spring's WebClient
+* Performance considerations
+* Solving the N+1 query problem
+  * Database optimization techniques
+  * Making too many controller invocations (n+1)
+* Implementing @BatchMapping for efficient data loading
+* All of this is happening sequentially on the same tomcat thread (sequentially)
+  * Leveraging Project Loom for scalability
+  * Configuring virtual thread executors
+  * This will enable a VirtualThreadExecutor
 
-## Netflix DGS Integration
-
-The Netflix Domain Graph Service (DGS) Framework is a GraphQL server framework for Java, built on top of Spring Boot. 
-In March 2024, the DGS Framework introduced an integration with Spring for GraphQL, aiming to unify the GraphQL Java community 
-and leverage the strengths of both frameworks.
-
-// TODO: have a better story to tell here
-
-- Talk about DGS here
-  - https://docs.spring.io/spring-graphql/reference/codegen.html
-  - https://www.youtube.com/watch?v=_l4Dykjezjk&t=1230s
-
-https://www.youtube.com/watch?v=_l4Dykjezjk&t=1230s
 
 ## Observability
 
@@ -366,6 +346,28 @@ When implementing GraphQL with Query by Example, keep these points in mind:
 * Add proper validation and error handling
 
 https://www.danvega.dev/blog/spring-boot-graphql-query-by-example
+
+
+## Client App
+
+* GraphQL Client Implementation
+* Type-safe query generation
+* Error handling and response parsing
+* Integration with Spring's WebClient
+
+## Netflix DGS Integration
+
+The Netflix Domain Graph Service (DGS) Framework is a GraphQL server framework for Java, built on top of Spring Boot.
+In March 2024, the DGS Framework introduced an integration with Spring for GraphQL, aiming to unify the GraphQL Java community
+and leverage the strengths of both frameworks.
+
+// TODO: have a better story to tell here
+
+- Talk about DGS here
+  - https://docs.spring.io/spring-graphql/reference/codegen.html
+  - https://www.youtube.com/watch?v=_l4Dykjezjk&t=1230s
+
+https://www.youtube.com/watch?v=_l4Dykjezjk&t=1230s
 
 ## Federation
 
