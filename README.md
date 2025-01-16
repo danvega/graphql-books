@@ -197,6 +197,18 @@ mutation {
     title
   }
 }
+
+# variables
+query findBookById($id: Int!) {
+  book(id: $id) {
+    id
+    title
+    author {
+      id
+      name
+    }
+  }
+}
 ```
 
 ## Unions
