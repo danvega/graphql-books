@@ -30,7 +30,19 @@ public class ClientApp implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         log.info("Client App: Retrieving Book synchronously");
-        var book = client.documentName("findBookById")
+        var document = """
+                query findBookById($id: Int!) {
+                    book(id: $id) {
+                        id
+                        title
+                        author {
+                            id
+                            name
+                        }
+                    }
+                }
+                """;
+        var book = client.document(document)
                 .variable("id", 1L)
                 .retrieveSync("book")
                 .toEntity(Book.class);
