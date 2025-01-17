@@ -27,7 +27,7 @@ while providing a flexible and efficient way to query data.
 
 ## Agenda
 
-- [Why GraphQL](#why-graphql)
+- [Why GraphQL](#why-graphql)   
 - [Getting Started](#getting-started)
 - [Schema First Approach](#schema-first-development)
 - [Schema Mapping Inspection Report](#schema-mapping-inspection-report)
@@ -389,6 +389,7 @@ https://github.com/apollographql/federation-jvm-spring-example
 [Spring for GraphQL - GitHub](https://github.com/spring-projects/spring-graphql)
 [Spring for GraphQL - GitHub Examples](https://github.com/spring-projects/spring-graphql-examples)
 [GraphQL Playlist on YouTube](https://www.youtube.com/playlist?list=PLZV0a2jwt22slmUC9iwGGWfRQRIhs1ELa)
+[Spring for GraphQL Java Book](https://leanpub.com/graphql-java/)
 
 ## Conclusion
 
