@@ -156,7 +156,6 @@ The Schema Mapping Report is a startup validation feature that ensures your Java
 * Mutation resolvers with @MutationMapping
   * addBook
   * with variables first and then an input type
-* Error handling strategies
 * GraphiQL interactive exploration
 
 ### GraphQL Query Examples
