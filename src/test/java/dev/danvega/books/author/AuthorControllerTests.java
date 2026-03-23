@@ -2,18 +2,24 @@ package dev.danvega.books.author;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.graphql.tester.AutoConfigureGraphQlTester;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.graphql.ExecutionGraphQlService;
+import org.springframework.graphql.test.tester.ExecutionGraphQlServiceTester;
 import org.springframework.graphql.test.tester.GraphQlTester;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @SpringBootTest
-@AutoConfigureGraphQlTester
+@Transactional
 class AuthorControllerTests {
 
+    private final GraphQlTester graphQlTester;
+
     @Autowired
-    private GraphQlTester graphQlTester;
+    AuthorControllerTests(ExecutionGraphQlService graphQlService) {
+        this.graphQlTester = ExecutionGraphQlServiceTester.builder(graphQlService).build();
+    }
 
     @Test
     void shouldBatchLoadBooksForAuthors() {

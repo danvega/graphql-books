@@ -4,7 +4,7 @@ A modern GraphQL API showcasing best practices for building scalable and efficie
 
 **Project Requirements**
 
-* Java 23
+* Java 26
 * Maven 3.6+
 * Docker and Docker Compose
 * PostgreSQL 17+
@@ -43,19 +43,19 @@ while providing a flexible and efficient way to query data.
 
 ## Why GraphQL
 
-* No more over-fetching
-* Multiple Request for multiple resources
-* Avoid REST API Explosion of endpoints
-* Strongly-typed Schema
-* Self Documenting
-* Developer Tooling
-* Avoids API Versioning
+- **No more over-fetching** — GraphQL lets clients request exactly the fields they need, so you never receive more data than your application actually uses.
+- **Multiple resources in a single request** — Instead of hitting several REST endpoints, a single GraphQL query can fetch data from multiple resources in one round trip.
+- **Avoid REST API explosion of endpoints** — GraphQL exposes a single endpoint that handles all queries and mutations, eliminating the sprawl of `/users`, `/users/{id}/posts`, `/users/{id}/orders`, etc.
+- **Strongly-typed schema** — Every field, type, and relationship in your API is defined upfront in a schema, giving you a clear contract between client and server that's enforced at runtime.
+- **Self-documenting** — The schema itself serves as living documentation, and tools like GraphiQL let developers explore the entire API surface without needing a separate doc site.
+- **Developer tooling** — GraphQL's introspection feature powers rich tooling like GraphiQL, IDE autocompletion, and automatic client code generation out of the box.
+- **Avoids API versioning** — You can add new fields and types to a GraphQL schema without breaking existing clients, removing the need for `/v1`, `/v2`, `/v3` endpoint versioning strategies.
 
 ## Getting Started
 
-* Project setup with Spring Boot 3.4.1
-* Essential dependencies:
-  * Spring Web 
+* Project setup with Spring Boot 4.0.4
+* [Essential dependencies](https://start.spring.io/#!type=maven-project&language=java&platformVersion=4.0.4&packaging=jar&configurationFileFormat=yaml&jvmVersion=26&groupId=dev.danvega&artifactId=jbooks&packageName=dev.danvega.jbooks&dependencies=web,graphql,data-jpa,postgresql,docker-compose):
+  * Spring WebMVC
   * Spring for GraphQL
   * Spring Data JPA
   * PostgreSQL
@@ -406,3 +406,7 @@ maintainable API that better serves both frontend and backend developers.
   - Unions - 40 min
   - Performance & Observability - 55 min
   - Data Integration - 60min
+  - Tabs
+    - GraphQL Java
+    - Spring for GraphQL Reference
+  - Docker Desktop

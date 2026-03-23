@@ -1,38 +1,39 @@
 package dev.danvega.books.book;
 
 import dev.danvega.books.author.Author;
+import dev.danvega.books.author.AuthorRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-@DataJpaTest
+@SpringBootTest
+@Transactional
 class BookRepositoryTests {
 
     @Autowired
     private BookRepository bookRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private AuthorRepository authorRepository;
 
     @Test
     void shouldFindBooksByTitle() {
-        // Setup test data
         Author author = new Author();
         author.setName("Test Author");
-        entityManager.persist(author);
+        authorRepository.save(author);
 
         Book book = new Book();
-        book.setTitle("Spring Boot Testing");
+        book.setTitle("Unique Repository Test Book");
         book.setAuthor(author);
-        entityManager.persist(book);
+        bookRepository.save(book);
 
-        List<Book> found = bookRepository.findAllByTitleContainsIgnoreCase("Spring");
+        List<Book> found = bookRepository.findAllByTitleContainsIgnoreCase("Unique Repository Test");
         assertThat(found).hasSize(1);
-        assertThat(found.get(0).getTitle()).contains("Spring");
+        assertThat(found.get(0).getTitle()).contains("Unique Repository Test");
     }
 }

@@ -1,4 +1,4 @@
-
+# Operation Types: Query, Mutation, Subscription
 type Query {
     books: [Book!]!
     book(id: Int!): Book!
