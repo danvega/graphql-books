@@ -41,6 +41,13 @@ public class AuthorController {
         return new ArrayList<>();
     }
 
+//    @SchemaMapping
+//    public List<Book> books(Author author) throws InterruptedException {
+//        log.info("Retrieving books for author " + author.getName());
+//        Thread.sleep((1000));
+//        return bookRepository.findByAuthor(author);
+//    }
+
     @BatchMapping
     public List<List<Book>> books(List<Author> authors) {
         log.info("Batch loading books for {} authors", authors.size());

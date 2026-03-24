@@ -54,7 +54,7 @@ while providing a flexible and efficient way to query data.
 ## Getting Started
 
 * Project setup with Spring Boot 4.0.4
-* [Essential dependencies](https://start.spring.io/#!type=maven-project&language=java&platformVersion=4.0.4&packaging=jar&configurationFileFormat=yaml&jvmVersion=26&groupId=dev.danvega&artifactId=jbooks&packageName=dev.danvega.jbooks&dependencies=web,graphql,data-jpa,postgresql,docker-compose):
+* [Essential dependencies](https://start.spring.io/#!type=maven-project&language=java&platformVersion=4.0.4&packaging=jar&configurationFileFormat=yaml&jvmVersion=26&groupId=dev.danvega&artifactId=jbooks&packageName=dev.danvega.jbooks&dependencies=web,graphql,data-jpa,postgresql,docker-compose,opentelemetry):
   * Spring WebMVC
   * Spring for GraphQL
   * Spring Data JPA
@@ -177,6 +177,18 @@ query {
   }
 }
 
+# variables
+query findBookById($id: Int!) {
+  book(id: $id) {
+    id
+    title
+    author {
+      id
+      name
+    }
+  }
+}
+
 # schema 
 type Mutation {
     addBook(title: String!, authorId: Int!): Book!
@@ -194,18 +206,6 @@ mutation {
   addBook(bookInput: {title:"new book", authorId:1}) {
     id
     title
-  }
-}
-
-# variables
-query findBookById($id: Int!) {
-  book(id: $id) {
-    id
-    title
-    author {
-      id
-      name
-    }
   }
 }
 ```
@@ -260,7 +260,8 @@ public class SearchController {
 
 ## Observability
 
-Observability is the ability to observe the internal state of a running system from the outside. It consists of the three pillars logging, metrics and traces.
+Observability is the ability to observe the internal state of a running system from the outside. It consists of the 
+three pillars logging, metrics and traces.
 
 Spring projects now have their own, built-in instrumentation for metrics and traces based on the new Observation API from Micrometer
 
@@ -271,14 +272,61 @@ GraphQL is a good use case for Observability in general, as the GraphQL engine c
 * GraphQL-specific instrumentation
 * Performance monitoring and debugging
 
+### OpenTelemetry Integration in Spring Boot 4
+
+Spring Boot 4 introduces the official spring-boot-starter-opentelemetry for production-ready observability with automatic instrumentation of HTTP requests, database calls, and log correlation.
+
+**Overview**
+
+The new OpenTelemetry starter simplifies observability by providing automatic instrumentation out of the box.
+Spring Boot internally uses Micrometer but exports all telemetry via OTLP (OpenTelemetry Protocol) to any
+compatible backend like Grafana, Jaeger, or Zipkin.
+
+**Key Concepts**
+
+- **Single dependency**: `spring-boot-starter-opentelemetry` replaces complex setup
+- **Automatic instrumentation**: HTTP server/client, JDBC, and more
+- **Log correlation**: Automatic trace/span ID injection into logs
+- **OTLP export**: Works with any OpenTelemetry-compatible backend
+- **Production-ready**: Official Spring support, no alpha dependencies
+
+https://www.danvega.dev/blog/opentelemetry-spring-boot
+
+## Client App
+
+Spring for GraphQL includes a built-in client that makes it easy to consume a GraphQL API from Java. The `ClientApp`
+is a standalone Spring Boot application (`WebApplicationType.NONE`) that demonstrates how to call the GraphQL server
+using Spring's native `HttpSyncGraphQlClient`.
+
+**Key Concepts:**
+
+* **`HttpSyncGraphQlClient`** — A synchronous GraphQL client built on top of `RestClient`, ideal for blocking applications
+* **Standalone execution** — Runs as a non-web app via `SpringApplicationBuilder`, separate from the server
+* **Document-based queries** — Define your GraphQL query as a string and pass variables with type-safe binding
+* **Automatic deserialization** — Map the response directly to your entity class with `.toEntity(Book.class)`
+* **Async alternative** — You can swap `.retrieveSync()` for `.retrieve()` to get reactive support (requires WebFlux on the classpath)
+
+```java
+var book = client.document(document)
+        .variable("id", 1L)
+        .retrieveSync("book")
+        .toEntity(Book.class);
+```
+
+The client constructs an `HttpSyncGraphQlClient` from a `RestClient` pointed at `http://localhost:8080/graphql`,
+sends a `findBookById` query with a variable, and deserializes the nested `book` field from the response into a `Book` entity —
+including its related `Author`.
+
 ## Data Integration
 
-When building APIs, one of the most common challenges developers face is implementing flexible search functionality. 
-You often need to support filtering based on multiple optional criteria, leading to complex query logic and verbose repository methods. 
+### Query By Example and @GraphQLRepository 
+
+When building APIs, one of the most common challenges developers face is implementing flexible search functionality.
+You often need to support filtering based on multiple optional criteria, leading to complex query logic and verbose repository methods.
 Spring Boot 3.2 introduces a powerful combination: GraphQL with Query by Example (QBE) support, offering an elegant solution to this challenge.
 
-Traditional approaches to implementing dynamic queries often involve writing multiple repository methods or building complex predicates. 
-Consider a book management system where users need to search by title, author, or publication year in any combination. 
+Traditional approaches to implementing dynamic queries often involve writing multiple repository methods or building complex predicates.
+Consider a book management system where users need to search by title, author, or publication year in any combination.
 Your repository might end up looking like this:
 
 ```java
@@ -292,8 +340,6 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByTitleAndAuthorAndPublishedYear(String title, String author, Integer year);
 }
 ```
-
-### @GraphQLRepository 
 
 The magic happens with the `@GraphQLRepository` annotation, which automatically creates data fetchers for your GraphQL 
 queries based on the repository methods. Combined with QueryByExampleExecutor, it enables dynamic querying without additional code.
@@ -358,13 +404,57 @@ When implementing GraphQL with Query by Example, keep these points in mind:
 
 https://www.danvega.dev/blog/spring-boot-graphql-query-by-example
 
+### Spring Data AOT Repositories
 
-## Client App
+Spring Boot 4 introduces Spring Data AOT (Ahead-of-Time) compilation, which moves repository query processing from
+runtime to build time. Instead of parsing derived query method names and `@Query` annotations on every application
+startup, the AOT processor pre-generates SQL statements and repository implementations during the build.
 
-* GraphQL Client Implementation
-* Type-safe query generation
-* Error handling and response parsing
-* Integration with Spring's WebClient
+**Benefits:**
+
+* **Faster startup** — eliminates runtime reflection and query parsing (50-70% improvement)
+* **Build-time error detection** — catch typos in method names (e.g., `findByNamme`) before deployment
+* **Lower memory usage** — pre-compiled implementations avoid reflection overhead
+* **GraalVM ready** — all code paths are known at build time, enabling native image compilation
+* **Inspectable** — view and debug generated implementations in `target/spring-aot/`
+
+In this project, repositories like `BookRepository` and `AuthorRepository` already use derived query methods
+(`findAllByTitleContainsIgnoreCase`, `findAllByNameContainsIgnoreCase`) and `@Query` annotations that get
+pre-compiled by the AOT processor.
+
+**Maven Setup:**
+
+To enable AOT processing, add the `process-aot` goal to the `spring-boot-maven-plugin`:
+
+```xml
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>process-aot</id>
+            <goals>
+                <goal>process-aot</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+```bash
+# AOT processing happens during package
+./mvnw clean package
+
+# View generated code
+ls target/spring-aot/main/sources/
+```
+
+**Resources:**
+
+* [Spring Data AOT Repositories](https://www.danvega.dev/blog/spring-data-aot-repositories)
+* [Video Tutorial](https://youtu.be/s_kmDbitE8s)
+* [GitHub Example](https://github.com/danvega/spring-data-aot)
+* [Official Documentation](https://docs.spring.io/spring-data/commons/reference/aot.html)
 
 ## Netflix DGS Integration
 
@@ -395,18 +485,3 @@ https://github.com/apollographql/federation-jvm-spring-example
 This project demonstrates how GraphQL can provide a more efficient and flexible API compared to traditional REST approaches. 
 Through features like precise data selection, batch loading, and strong typing, we've shown how to build a scalable and 
 maintainable API that better serves both frontend and backend developers.
-
-
-## Notes
-
-- Agenda Timing
-  - Why GrapQL & Getting Started - 15 min
-  - Schema First Approach & Schema Inspection - 21 min
-  - Data Fetchers - 35 min
-  - Unions - 40 min
-  - Performance & Observability - 55 min
-  - Data Integration - 60min
-  - Tabs
-    - GraphQL Java
-    - Spring for GraphQL Reference
-  - Docker Desktop
