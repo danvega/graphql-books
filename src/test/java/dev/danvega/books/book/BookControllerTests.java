@@ -68,6 +68,29 @@ class BookControllerTests {
     }
 
     @Test
+    void shouldBatchLoadReviewsForBooks() {
+        var document = """
+            query {
+                books {
+                    title
+                    reviews {
+                        rating
+                    }
+                }
+            }
+        """;
+
+        graphQlTester.document(document)
+                .execute()
+                .path("books[0].reviews")
+                .entityList(Object.class)
+                .hasSize(2)
+                .path("books[4].reviews")
+                .entityList(Object.class)
+                .hasSize(0);
+    }
+
+    @Test
     void shouldAddNewBook() {
         var document = """
         mutation($input: BookInput!) {
