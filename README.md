@@ -41,6 +41,28 @@ while providing a flexible and efficient way to query data.
 - [Resources](#resources)
 - [Conclusion](#conclusion)
 
+### Branches
+
+Each step of the agenda has its own branch. Every branch builds on the one before it, so you can check out any
+step and run it. The `master` branch holds the finished code.
+
+| Agenda Step | Branch |
+|-------------|--------|
+| Getting Started | `01-getting-started` |
+| Schema First Approach | `02-schema-first` |
+| Schema Mapping Inspection Report | `02-schema-first` |
+| Data Fetchers | `03-data-fetchers` |
+| Union (Search) | `04-unions` |
+| Performance Improvements (the N+1 problem) | `05-n-plus-one` |
+| Performance Improvements (batch loading) | `06-batch-mapping` |
+| Data Integration | `07-data-integration` |
+| Observability | `08-observability` |
+| Client App | `09-client-app` |
+
+```bash
+git checkout 03-data-fetchers
+```
+
 ## Why GraphQL
 
 - **No more over-fetching** — GraphQL lets clients request exactly the fields they need, so you never receive more data than your application actually uses.
@@ -54,14 +76,13 @@ while providing a flexible and efficient way to query data.
 ## Getting Started
 
 * Project setup with Spring Boot 4.1.1
-* [Essential dependencies](https://start.spring.io/#!type=maven-project&language=java&platformVersion=4.1.1&packaging=jar&configurationFileFormat=yaml&jvmVersion=27&groupId=dev.danvega&artifactId=graphql-books&packageName=dev.danvega.books&dependencies=web,graphql,data-jpa,postgresql,actuator,devtools,opentelemetry,docker-compose):
+* [Essential dependencies](https://start.spring.io/#!type=maven-project&language=java&platformVersion=4.1.1&packaging=jar&configurationFileFormat=yaml&jvmVersion=27&groupId=dev.danvega&artifactId=graphql-books&packageName=dev.danvega.books&dependencies=web,graphql,data-jpa,postgresql,actuator,devtools,docker-compose):
   * Spring WebMVC
   * Spring for GraphQL
   * Spring Data JPA
   * PostgreSQL
   * Actuator
   * DevTools
-  * OpenTelemetry
   * Docker Compose Support
 * Review & Discuss
   * pom.xml (Current Versions of Spring for GraphQL 2.0.5 & GraphQL Java 25.0)
