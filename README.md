@@ -274,7 +274,29 @@ public class SearchController {
 
 ## Performance Improvements
 
-Both steps run the same query. Watch how long it takes and what shows up in the log.
+Both steps use the `authors` query, so you can compare how long it takes and what shows up in the log.
+
+### The N+1 Problem
+
+Branch: `05-n-plus-one`
+
+* `AuthorController` loads each author's books with `@SchemaMapping`
+* Spring for GraphQL calls that method once for every author: 1 query for the authors, then N more for their books
+* A 1 second delay stands in for a slow database or service, so 6 authors take about 6 seconds
+* The log shows one `Retrieving books for author` line per author
+* All of this happens one call after another on the same Tomcat thread
+
+Start with only the author names. The `books` data fetcher never runs, so this comes back right away:
+
+```graphql
+query {
+  authors {
+    name
+  }
+}
+```
+
+Now ask for each author's books. This takes about 6 seconds:
 
 ```graphql
 query {
@@ -287,16 +309,6 @@ query {
 }
 ```
 
-### The N+1 Problem
-
-Branch: `05-n-plus-one`
-
-* `AuthorController` loads each author's books with `@SchemaMapping`
-* Spring for GraphQL calls that method once for every author: 1 query for the authors, then N more for their books
-* A 1 second delay stands in for a slow database or service, so 6 authors take about 6 seconds
-* The log shows one `Retrieving books for author` line per author
-* All of this happens one call after another on the same Tomcat thread
-
 ### Batch Loading with @BatchMapping
 
 Branch: `06-batch-mapping`
@@ -306,6 +318,19 @@ Branch: `06-batch-mapping`
 * The same query drops to about 0.1 seconds, and the log shows a single `Batch loading books for 6 authors` line
 * Database optimization: `AuthorRepository.findAllWithBooks()` shows the JOIN FETCH alternative
 * Leveraging Project Loom: uncomment `spring.threads.virtual.enabled` in `application.yaml` and Tomcat handles each request on a virtual thread
+
+Run the same query again. It now comes back in about 0.1 seconds:
+
+```graphql
+query {
+  authors {
+    name
+    books {
+      title
+    }
+  }
+}
+```
 
 
 ## Data Integration
