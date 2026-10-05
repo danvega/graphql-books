@@ -2,6 +2,7 @@
 type Query {
     books: [Book!]!
     book(id: Int!): Book!
+    authors: [Author!]!
     search(text: String) : [SearchItem!]!
 }
 

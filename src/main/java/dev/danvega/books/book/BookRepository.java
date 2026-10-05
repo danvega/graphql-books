@@ -1,5 +1,6 @@
 package dev.danvega.books.book;
 
+import dev.danvega.books.author.Author;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +13,6 @@ public interface BookRepository extends JpaRepository<Book,Long> {
     List<Book> findAll();
 
     List<Book> findAllByTitleContainsIgnoreCase(String title);
+
+    List<Book> findByAuthor(Author author);
 }
