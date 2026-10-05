@@ -41,8 +41,11 @@ class AuthorControllerTests {
                 .path("authors")
                 .entityList(Author.class)
                 .satisfies(authors -> {
-                    assertThat(authors).isNotEmpty();
-                    assertThat(authors).allMatch(author -> !author.getBooks().isEmpty());
+                    assertThat(authors).hasSize(6);
+                    assertThat(authors)
+                            .filteredOn(author -> author.getName().equals("Craig Walls"))
+                            .singleElement()
+                            .satisfies(author -> assertThat(author.getBooks()).hasSize(2));
                 });
     }
 }

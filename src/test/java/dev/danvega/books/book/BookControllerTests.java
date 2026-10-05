@@ -42,7 +42,7 @@ class BookControllerTests {
                 .execute()
                 .path("books")
                 .entityList(Book.class)
-                .hasSize(4);
+                .hasSize(7);
     }
 
     @Test

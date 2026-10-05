@@ -4,7 +4,7 @@ A modern GraphQL API showcasing best practices for building scalable and efficie
 
 **Project Requirements**
 
-* Java 26
+* Java 27
 * Maven 3.6+
 * Docker and Docker Compose
 * PostgreSQL 17+
@@ -53,17 +53,18 @@ while providing a flexible and efficient way to query data.
 
 ## Getting Started
 
-* Project setup with Spring Boot 4.0.4
-* [Essential dependencies](https://start.spring.io/#!type=maven-project&language=java&platformVersion=4.0.4&packaging=jar&configurationFileFormat=yaml&jvmVersion=26&groupId=dev.danvega&artifactId=jbooks&packageName=dev.danvega.jbooks&dependencies=web,graphql,data-jpa,postgresql,docker-compose,opentelemetry):
+* Project setup with Spring Boot 4.1.1
+* [Essential dependencies](https://start.spring.io/#!type=maven-project&language=java&platformVersion=4.1.1&packaging=jar&configurationFileFormat=yaml&jvmVersion=27&groupId=dev.danvega&artifactId=graphql-books&packageName=dev.danvega.books&dependencies=web,graphql,data-jpa,postgresql,actuator,devtools,opentelemetry,docker-compose):
   * Spring WebMVC
   * Spring for GraphQL
   * Spring Data JPA
   * PostgreSQL
   * Actuator
   * DevTools
-  * Zipkin
+  * OpenTelemetry
+  * Docker Compose Support
 * Review & Discuss
-  * pom.xml (Current Versions of Spring for GraphQL & GraphQL Java )
+  * pom.xml (Current Versions of Spring for GraphQL 2.0.5 & GraphQL Java 25.0)
   * compose.yaml (Docker Compose configuration for local development)
   * application.yaml (Application configuration with GraphiQL UI enabled)
 * Book Package
@@ -274,7 +275,7 @@ GraphQL is a good use case for Observability in general, as the GraphQL engine c
 
 ### OpenTelemetry Integration in Spring Boot 4
 
-Spring Boot 4 introduces the official spring-boot-starter-opentelemetry for production-ready observability with automatic instrumentation of HTTP requests, database calls, and log correlation.
+Spring Boot 4 introduces the official spring-boot-starter-opentelemetry for production-ready observability with automatic instrumentation of HTTP requests, GraphQL operations, and log correlation.
 
 **Overview**
 
@@ -285,12 +286,40 @@ compatible backend like Grafana, Jaeger, or Zipkin.
 **Key Concepts**
 
 - **Single dependency**: `spring-boot-starter-opentelemetry` replaces complex setup
-- **Automatic instrumentation**: HTTP server/client, JDBC, and more
+- **Automatic instrumentation**: HTTP server/client, GraphQL requests, data fetchers, and DataLoaders
+- **No SQL spans by default**: JDBC queries are not traced out of the box. Add a library like `datasource-micrometer` if you want them.
 - **Log correlation**: Automatic trace/span ID injection into logs
 - **OTLP export**: Works with any OpenTelemetry-compatible backend
 - **Production-ready**: Official Spring support, no alpha dependencies
 
+**Running It Locally**
+
+The `compose.yaml` file starts the `grafana/otel-lgtm` container next to Postgres. It bundles an OpenTelemetry
+collector with Grafana, Tempo (traces), Prometheus (metrics), and Loki (logs).
+
+You don't need any OTLP endpoint configuration. Spring Boot's Docker Compose support finds the container and wires
+the trace and metric exporters for you. The only setting is the sampling rate in `application.yaml`:
+
+```yaml
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+```
+
+Run a few queries in GraphiQL, then open Grafana at [http://localhost:3000](http://localhost:3000). Go to
+**Explore**, pick **Tempo**, and search for the `graphql-books` service. Each request shows the GraphQL spans:
+
+* `http post /graphql`
+* `graphql query`
+* `graphql field authors`
+* `graphql dataloader` (the batch loader at work)
+
+Metrics are exported once a minute, so give them a moment to show up in Prometheus.
+
 https://www.danvega.dev/blog/opentelemetry-spring-boot
+
+https://github.com/danvega/ot
 
 ## Client App
 
@@ -477,7 +506,7 @@ https://github.com/apollographql/federation-jvm-spring-example
 [Spring for GraphQL - Reference Documentation](https://docs.spring.io/spring-graphql/reference)
 [Spring for GraphQL - GitHub](https://github.com/spring-projects/spring-graphql)
 [Spring for GraphQL - GitHub Examples](https://github.com/spring-projects/spring-graphql-examples)
-[GraphQL Playlist on YouTube](https://www.youtube.com/playlist?list=PLZV0a2jwt22slmUC9iwGGWfRQRIhs1ELa)
+[GraphQL Playlist on YouTube](https://www.youtube.com/playlist?list=PLZV0a2jwt22u5DEFwYSzOM7mg6AjL90hw)
 [Spring for GraphQL Java Book](https://leanpub.com/graphql-java/)
 
 ## Conclusion

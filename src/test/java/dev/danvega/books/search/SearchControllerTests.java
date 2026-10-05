@@ -39,6 +39,6 @@ class SearchControllerTests {
                 .execute()
                 .path("search")
                 .entityList(Object.class)
-                .hasSize(3);
+                .hasSize(5);
     }
 }

@@ -6,8 +6,10 @@ services:
       - 'POSTGRES_PASSWORD=password'
       - 'POSTGRES_USER=admin'
     ports:
-      - '5432:5432'
-  zipkin:
-    image: 'openzipkin/zipkin:latest'
+      - '5432'
+  grafana-lgtm:
+    image: 'grafana/otel-lgtm:latest'
     ports:
-      - '9411:9411'
+      - '3000:3000'
+      - '4317'
+      - '4318'
