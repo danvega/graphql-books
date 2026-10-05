@@ -285,7 +285,7 @@ Branch: `05-n-plus-one`
 * Spring for GraphQL calls that method once for every author: 1 query for the authors, then N more for their books
 * A 1 second delay stands in for a slow database or service, so 6 authors take about 6 seconds
 * The log shows one `Retrieving books for author` line per author
-* All of this happens one call after another on the same Tomcat thread
+* All of this happens one call after another on the same Tomcat thread, and the log shows the same thread name six times
 
 Start with only the author names. The `books` data fetcher never runs, so this comes back right away:
 
@@ -310,6 +310,14 @@ query {
 }
 ```
 
+**One option: virtual threads.** Uncomment `spring.threads.virtual.enabled` in `application.yaml` and run the same
+query again:
+
+* It now takes about 1 second, with no code changes
+* Spring Boot gives Spring for GraphQL a virtual thread executor, so each `books` call runs on its own thread at the same time
+* The log shows a different `task-N` thread for each author instead of one Tomcat thread
+* It's still N+1. Six calls still hit the database or service, they just wait at the same time. The real fix is next.
+
 ### Batch Loading with @BatchMapping
 
 Branch: `06-batch-mapping`
@@ -318,7 +326,7 @@ Branch: `06-batch-mapping`
 * One repository call (`findByAuthorIdIn`) loads all the books, then they're grouped by author
 * The same query drops to about 0.1 seconds, and the log shows a single `Batch loading books for 6 authors` line
 * Database optimization: `AuthorRepository.findAllWithBooks()` shows the JOIN FETCH alternative
-* Leveraging Project Loom: uncomment `spring.threads.virtual.enabled` in `application.yaml` and Tomcat handles each request on a virtual thread
+* Virtual threads don't change this query's time anymore, because there's only one call left. They still help when many requests come in at once.
 
 Run the same query again. It now comes back in about 0.1 seconds:
 
