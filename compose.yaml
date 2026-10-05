@@ -7,3 +7,9 @@ services:
       - 'POSTGRES_USER=admin'
     ports:
       - '5432'
+  grafana-lgtm:
+    image: 'grafana/otel-lgtm:latest'
+    ports:
+      - '3000:3000'
+      - '4317'
+      - '4318'
