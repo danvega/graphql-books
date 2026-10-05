@@ -1,5 +1,15 @@
+# Operation Types: Query, Mutation, Subscription
+type Query {
+    books: [Book!]!
+    book(id: Int!): Book!
+}
+
+type Mutation {
+    addBook(bookInput: BookInput): Book!
+}
+
 type Book {
-    id: Int!
+    id: ID!
     title: String!
     author: Author!
 }
@@ -10,6 +20,10 @@ type Author {
     books: [Book!]!
 }
 
-type Query {
-    books: [Book!]!
+
+# these are all output types
+# what about input types
+input BookInput {
+    title: String!
+    authorId: Int!
 }
