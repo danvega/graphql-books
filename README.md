@@ -274,15 +274,38 @@ public class SearchController {
 
 ## Performance Improvements
 
-* Performance considerations
-* Solving the N+1 query problem
-  * Database optimization techniques
-  * Making too many controller invocations (n+1)
-* Implementing @BatchMapping for efficient data loading
-* All of this is happening sequentially on the same tomcat thread (sequentially)
-  * Leveraging Project Loom for scalability
-  * Configuring virtual thread executors
-  * This will enable a VirtualThreadExecutor
+Both steps run the same query. Watch how long it takes and what shows up in the log.
+
+```graphql
+query {
+  authors {
+    name
+    books {
+      title
+    }
+  }
+}
+```
+
+### The N+1 Problem
+
+Branch: `05-n-plus-one`
+
+* `AuthorController` loads each author's books with `@SchemaMapping`
+* Spring for GraphQL calls that method once for every author: 1 query for the authors, then N more for their books
+* A 1 second delay stands in for a slow database or service, so 6 authors take about 6 seconds
+* The log shows one `Retrieving books for author` line per author
+* All of this happens one call after another on the same Tomcat thread
+
+### Batch Loading with @BatchMapping
+
+Branch: `06-batch-mapping`
+
+* `@BatchMapping` receives every author at once instead of one at a time
+* One repository call (`findByAuthorIdIn`) loads all the books, then they're grouped by author
+* The same query drops to about 0.1 seconds, and the log shows a single `Batch loading books for 6 authors` line
+* Database optimization: `AuthorRepository.findAllWithBooks()` shows the JOIN FETCH alternative
+* Leveraging Project Loom: uncomment `spring.threads.virtual.enabled` in `application.yaml` and Tomcat handles each request on a virtual thread
 
 
 ## Data Integration
