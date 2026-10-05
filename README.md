@@ -55,9 +55,10 @@ step and run it. The `master` branch holds the finished code.
 | Union (Search) | `04-unions` |
 | Performance Improvements (the N+1 problem) | `05-n-plus-one` |
 | Performance Improvements (batch loading) | `06-batch-mapping` |
-| Data Integration | `07-data-integration` |
-| Observability | `08-observability` |
-| Client App | `09-client-app` |
+| Data Integration (Query by Example) | `07-query-by-example` |
+| Data Integration (AOT repositories) | `08-aot-repositories` |
+| Observability | `09-observability` |
+| Client App | `10-client-app` |
 
 ```bash
 git checkout 03-data-fetchers
@@ -335,112 +336,89 @@ query {
 
 ## Data Integration
 
-### Query By Example and @GraphQLRepository 
+Both steps work with data. First, flexible search without writing a query method for every filter. Then, repository
+queries that are generated when you build instead of when the app starts.
 
-When building APIs, one of the most common challenges developers face is implementing flexible search functionality.
-You often need to support filtering based on multiple optional criteria, leading to complex query logic and verbose repository methods.
-Spring Boot 3.2 introduces a powerful combination: GraphQL with Query by Example (QBE) support, offering an elegant solution to this challenge.
+### Query by Example with @GraphQlRepository
 
-Traditional approaches to implementing dynamic queries often involve writing multiple repository methods or building complex predicates.
-Consider a book management system where users need to search by title, author, or publication year in any combination.
-Your repository might end up looking like this:
+Branch: `07-query-by-example`
 
-```java
-public interface BookRepository extends JpaRepository<Book, Long> {
-    List<Book> findByTitle(String title);
-    List<Book> findByAuthor(String author);
-    List<Book> findByPublishedYear(Integer year);
-    List<Book> findByTitleAndAuthor(String title, String author);
-    List<Book> findByTitleAndPublishedYear(String title, Integer year);
-    List<Book> findByAuthorAndPublishedYear(String author, Integer year);
-    List<Book> findByTitleAndAuthorAndPublishedYear(String title, String author, Integer year);
-}
-```
-
-The magic happens with the `@GraphQLRepository` annotation, which automatically creates data fetchers for your GraphQL 
-queries based on the repository methods. Combined with QueryByExampleExecutor, it enables dynamic querying without additional code.
+* Search screens need many optional filters, and a repository method for every combination gets out of hand fast
+* `ReviewRepository` extends `QueryByExampleExecutor` and has `@GraphQlRepository`
+* Spring for GraphQL registers the `review` and `reviews` data fetchers for you, with no controller method
+* The `ReviewFilter` input becomes an example `Review`, and any field you leave out is ignored
+* `Book.reviews` uses `@BatchMapping`, so the reviews for every book load in one query
 
 ```graphql
 type Query {
-  review(id: Int!): Review
-  reviews(filter: ReviewFilter): [Review]!
-}
-
-type Review {
-  id: ID!
-  rating: Int!
-  comment: String
-  createdAt: String!
-  reviewerName: String!
-  verified: Boolean!
-  book: Book!
+    review(id: Int!): Review
+    reviews(filter: ReviewFilter): [Review]!
 }
 
 input ReviewFilter {
-  rating: Int
-  verified: Boolean
-  reviewerName: String
+    rating: Int
+    verified: Boolean
+    reviewerName: String
 }
 ```
 
-Example queries demonstrating the review filtering system:
+Find verified reviews only. This returns 6 of the 8 reviews:
 
 ```graphql
-
-# Find verified reviews only
-{
+query {
   reviews(filter: { verified: true }) {
     reviewerName
     rating
     comment
   }
 }
+```
 
-# Find reviews by Sarah Chen
-{
+Find the reviews by one reviewer. Sarah Chen wrote 2:
+
+```graphql
+query {
   reviews(filter: { reviewerName: "Sarah Chen" }) {
     book {
       title
     }
-    reviewerName
     rating
     comment
   }
 }
 ```
 
-**Best Practices and Considerations**
+Get a book with its reviews through the batch mapping:
 
-When implementing GraphQL with Query by Example, keep these points in mind:
+```graphql
+query {
+  book(id: 1) {
+    title
+    reviews {
+      reviewerName
+      rating
+    }
+  }
+}
+```
 
-* Use nullable fields in your input types to make them optional for searching
-* Consider adding match modes (exact, contains, starts with) for string fields
-* Implement pagination for large result sets
-* Add proper validation and error handling
+Things to keep in mind:
+
+* Use nullable fields in your input types so each filter is optional
+* Consider match modes (exact, contains, starts with) for string fields
+* Add pagination for large result sets
+* Add validation and error handling
 
 https://www.danvega.dev/blog/spring-boot-graphql-query-by-example
 
 ### Spring Data AOT Repositories
 
-Spring Boot 4 introduces Spring Data AOT (Ahead-of-Time) compilation, which moves repository query processing from
-runtime to build time. Instead of parsing derived query method names and `@Query` annotations on every application
-startup, the AOT processor pre-generates SQL statements and repository implementations during the build.
+Branch: `08-aot-repositories`
 
-**Benefits:**
-
-* **Faster startup** — eliminates runtime reflection and query parsing (50-70% improvement)
-* **Build-time error detection** — catch typos in method names (e.g., `findByNamme`) before deployment
-* **Lower memory usage** — pre-compiled implementations avoid reflection overhead
-* **GraalVM ready** — all code paths are known at build time, enabling native image compilation
-* **Inspectable** — view and debug generated implementations in `target/spring-aot/`
-
-In this project, repositories like `BookRepository` and `AuthorRepository` already use derived query methods
-(`findAllByTitleContainsIgnoreCase`, `findAllByNameContainsIgnoreCase`) and `@Query` annotations that get
-pre-compiled by the AOT processor.
-
-**Maven Setup:**
-
-To enable AOT processing, add the `process-aot` goal to the `spring-boot-maven-plugin`:
+* Spring Data normally parses derived query names and `@Query` strings every time the app starts
+* With AOT, the build generates the repository code and its queries ahead of time
+* The benefits are faster startup, lower memory use, and code that's ready for GraalVM native images
+* The only change in this branch is the `process-aot` goal in `pom.xml`
 
 ```xml
 <plugin>
@@ -457,12 +435,18 @@ To enable AOT processing, add the `process-aot` goal to the `spring-boot-maven-p
 </plugin>
 ```
 
-```bash
-# AOT processing happens during package
-./mvnw clean package
+Build the project, then open the generated repositories:
 
-# View generated code
-ls target/spring-aot/main/sources/
+```bash
+./mvnw clean package -DskipTests
+ls target/spring-aot/main/sources/dev/danvega/books/book/
+```
+
+`BookRepositoryImpl__AotRepository.java` holds the query for each method. For example,
+`findAllByTitleContainsIgnoreCase` becomes:
+
+```java
+String queryString = "SELECT b FROM Book b WHERE UPPER(b.title) LIKE UPPER(:title) ESCAPE '\\'";
 ```
 
 **Resources:**
