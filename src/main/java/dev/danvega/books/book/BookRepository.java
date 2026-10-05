@@ -10,4 +10,6 @@ public interface BookRepository extends JpaRepository<Book,Long> {
     @Override
     @EntityGraph(attributePaths = "author")
     List<Book> findAll();
+
+    List<Book> findAllByTitleContainsIgnoreCase(String title);
 }

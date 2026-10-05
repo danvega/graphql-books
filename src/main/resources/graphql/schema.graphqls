@@ -2,6 +2,7 @@
 type Query {
     books: [Book!]!
     book(id: Int!): Book!
+    search(text: String) : [SearchItem!]!
 }
 
 type Mutation {
@@ -27,3 +28,6 @@ input BookInput {
     title: String!
     authorId: Int!
 }
+
+# Union BookOrAuthor - This is a type we don't have in Java (they don't share anything in common)
+union SearchItem = Author | Book
