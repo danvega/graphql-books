@@ -61,7 +61,11 @@ step and run it. The `master` branch holds the finished code.
 
 ```bash
 git checkout 03-data-fetchers
+./mvnw clean spring-boot:run
 ```
+
+Always run `clean` after you switch branches. A plain `spring-boot:run` leaves the last branch's classes and config
+in `target/`, and files from a later branch can stop an earlier one from starting.
 
 ## Why GraphQL
 
